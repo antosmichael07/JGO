@@ -16,7 +16,7 @@ func main() {
         fmt.Printf("%d", i)
     }
 
-    for num > 5 {
+    for num < 5 {
         num++
     }
 
