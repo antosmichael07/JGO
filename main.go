@@ -97,7 +97,7 @@ func main() {
 			if strings.Contains(lines[i], ":=") && !is_string(lines[i], strings.Index(lines[i], ":=")) {
 				for j := strings.Index(lines[i], ":=") - 2; j > 0; j-- {
 					if lines[i][j] == ' ' {
-						lines[i] = fmt.Sprintf("%slet %s", lines[i][:j], lines[i][j+1:])
+						lines[i] = fmt.Sprintf("%s let %s", lines[i][:j], lines[i][j+1:])
 						break
 					}
 				}
@@ -127,7 +127,7 @@ func main() {
 
 			// For
 			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) {
-				lines[i] = strings.Replace(lines[i], "for", "for (", 1)
+				lines[i] = strings.Replace(lines[i], "for ", "for (", 1)
 				lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 			}
 
