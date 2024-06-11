@@ -105,13 +105,13 @@ func main() {
 			}
 
 			// Conditions
-			if strings.Contains(lines[i], "if") && !is_string(lines[i], strings.Index(lines[i], "if")) {
+			if strings.Contains(lines[i], "if") && !is_string(lines[i], strings.Index(lines[i], "if")) && lines[i][strings.Index(lines[i], "if")+1] == ' ' && (strings.Index(lines[i], "if") == 0 || lines[i][strings.Index(lines[i], "if")-1] == ' ') {
 				lines[i] = strings.Replace(lines[i], "if ", "if (", 1)
 				lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 			}
 
 			// While
-			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) {
+			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) && lines[i][strings.Index(lines[i], "for")+1] == ' ' && (strings.Index(lines[i], "for") == 0 || lines[i][strings.Index(lines[i], "for")-1] == ' ') {
 				semicolon_count := 0
 				for j := 0; j < len(lines[i]); j++ {
 					if lines[i][j] == ';' {
@@ -126,13 +126,13 @@ func main() {
 			}
 
 			// For
-			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) {
+			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) && lines[i][strings.Index(lines[i], "for")+1] == ' ' && (strings.Index(lines[i], "for") == 0 || lines[i][strings.Index(lines[i], "for")-1] == ' ') {
 				lines[i] = strings.Replace(lines[i], "for ", "for (", 1)
 				lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 			}
 
 			// Printf
-			if strings.Contains(lines[i], "fmt.Printf") && !is_string(lines[i], strings.Index(lines[i], "fmt.Printf")) {
+			if strings.Contains(lines[i], "fmt.Printf") && !is_string(lines[i], strings.Index(lines[i], "fmt.Printf")) && lines[i][strings.Index(lines[i], "fmt.Printf")+1] == '(' && (strings.Index(lines[i], "fmt.Printf") == 0 || lines[i][strings.Index(lines[i], "fmt.Printf")-1] == ' ') {
 				lines[i] = strings.Replace(lines[i], "fmt.Printf", "console.log", 1)
 			}
 		}
