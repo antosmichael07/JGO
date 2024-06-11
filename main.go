@@ -14,17 +14,17 @@ func main() {
 	logger.Output.File = false
 
 	if len(os.Args) == 1 {
-		fmt.Print("\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
+		fmt.Print("\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
 		return
 	}
 
-	if os.Args[1] == "help" && len(os.Args) == 2 {
-		fmt.Print("\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
+	if os.Args[1] == "help" && len(os.Args) >= 2 {
+		fmt.Print("\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
 		return
 	}
 
 	if os.Args[1] == "check" {
-		if len(os.Args) == 3 {
+		if len(os.Args) >= 3 {
 			dir := os.Args[2]
 			out, err := os.ReadDir(dir)
 			if err != nil {
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	if os.Args[1] == "build" {
-		if len(os.Args) == 3 {
+		if len(os.Args) >= 3 {
 			dir := os.Args[2]
 			out, err := os.ReadDir(dir)
 			if err != nil {
