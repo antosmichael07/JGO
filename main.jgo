@@ -6,5 +6,19 @@ const (
 )
 
 func main() {
+    num := 1
 
+    if num == 1 {
+        num = 2
+    }
+
+    for i := 0; i < num; i++ {
+        fmt.Printf("%d", i)
+    }
+
+    for num > 5 {
+        num++
+    }
+
+    fmt.Printf("Num is: %d", num)
 }

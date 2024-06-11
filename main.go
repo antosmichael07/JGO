@@ -64,11 +64,7 @@ func main() {
 				lines = append(lines[:i], lines[i+1:]...)
 				end--
 				for j := i; lines[j][0] != ')'; j++ {
-					char_index := 0
-					for lines[j][char_index] == ' ' {
-						char_index++
-					}
-					lines[j] = fmt.Sprintf("const %s", lines[j][char_index:])
+					lines[j] = fmt.Sprintf("const %s", lines[j][get_space_count(lines[j]):])
 					i++
 				}
 				lines = append(lines[:i], lines[i+1:]...)
@@ -96,8 +92,52 @@ func main() {
 					}
 				}
 			}
+
+			// Variables
+			if strings.Contains(lines[i], ":=") && !is_string(lines[i], strings.Index(lines[i], ":=")) {
+				for j := strings.Index(lines[i], ":=") - 2; j > 0; j-- {
+					if lines[i][j] == ' ' {
+						lines[i] = fmt.Sprintf("%slet %s", lines[i][:j], lines[i][j+1:])
+						break
+					}
+				}
+				lines[i] = strings.Replace(lines[i], ":=", "=", 1)
+			}
+
+			// Conditions
+			if strings.Contains(lines[i], "if") && !is_string(lines[i], strings.Index(lines[i], "if")) {
+				lines[i] = strings.Replace(lines[i], "if ", "if (", 1)
+				lines[i] = strings.Replace(lines[i], " {", ") {", 1)
+			}
+
+			// While
+			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) {
+				semicolon_count := 0
+				for j := 0; j < len(lines[i]); j++ {
+					if lines[i][j] == ';' {
+						semicolon_count++
+					}
+				}
+				if semicolon_count == 0 {
+					lines[i] = strings.Replace(lines[i], "for", "while", 1)
+					lines[i] = strings.Replace(lines[i], "while ", "while (", 1)
+					lines[i] = strings.Replace(lines[i], " {", ") {", 1)
+				}
+			}
+
+			// For
+			if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) {
+				lines[i] = strings.Replace(lines[i], "for", "for (", 1)
+				lines[i] = strings.Replace(lines[i], " {", ") {", 1)
+			}
+
+			// Printf
+			if strings.Contains(lines[i], "fmt.Printf") && !is_string(lines[i], strings.Index(lines[i], "fmt.Printf")) {
+				lines[i] = strings.Replace(lines[i], "fmt.Printf", "console.log", 1)
+			}
 		}
 
+		// Call main
 		if has_main {
 			if lines[len(lines)-1] == "" || lines[len(lines)-1] == "\r" {
 				lines = append(lines, "main()")
@@ -128,4 +168,27 @@ func main() {
 			break
 		}
 	}
+}
+
+func is_string(str string, index int) bool {
+	string_indexes := []int{}
+	for i := 0; i < len(str); i++ {
+		if str[i] == '"' {
+			string_indexes = append(string_indexes, i)
+		}
+	}
+	for i := 0; i < len(string_indexes); i += 2 {
+		if index > string_indexes[i] && index < string_indexes[i+1] {
+			return true
+		}
+	}
+	return false
+}
+
+func get_space_count(str string) int {
+	count := 0
+	for i := 0; str[i] == ' '; i++ {
+		count++
+	}
+	return count
 }
