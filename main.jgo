@@ -12,8 +12,6 @@ func main() {
         num = 2
     }
 
-    if mciahl : michaů
-
     for i := 0; i < num; i++ {
         fmt.Printf("%d", i)
     }
