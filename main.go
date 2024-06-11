@@ -31,17 +31,21 @@ func main() {
 	}
 
 	for _, v := range files {
-		logger.Log(lgr.Info, "Start compiling \"%s\"", v)
-
-		has_main := false
-
 		data, err := os.ReadFile(v)
 		if err != nil {
 			logger.Log(lgr.Error, "Error reading file \"%s\", error \"%s\"", v, err)
 			break
 		}
-
 		lines := strings.Split(string(data), "\n")
+
+		if strings.Index(lines[0], "package main") != 0 {
+			logger.Log(lgr.Info, "Skipping \"%s\", it is not a main package", v)
+			continue
+		}
+
+		logger.Log(lgr.Info, "Start compiling \"%s\"", v)
+
+		has_main := false
 
 		end := len(lines)
 		for i := 0; i < end; i++ {
@@ -49,6 +53,10 @@ func main() {
 			if strings.Index(lines[i], "package") == 0 {
 				lines = append(lines[:i], lines[i+1:]...)
 				end--
+				for lines[i] == "" || lines[i] == "\r" {
+					lines = append(lines[:i], lines[i+1:]...)
+					end--
+				}
 			}
 
 			// Constants
@@ -91,7 +99,12 @@ func main() {
 		}
 
 		if has_main {
-			lines = append(lines, "main()")
+			if lines[len(lines)-1] == "" || lines[len(lines)-1] == "\r" {
+				lines = append(lines, "main()")
+			} else {
+				lines = append(lines, "")
+				lines = append(lines, "main()")
+			}
 		}
 
 		for i, v := range lines {
