@@ -14,7 +14,7 @@ func main() {
 	logger.Output.File = false
 
 	if len(os.Args) == 1 {
-		fmt.Print("\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
+		fmt.Print("\n!error: no commands called, manual:\n\nThe JGO manual\njgo <command> [options]\n\nCommands:\n\thelp\n\tcheck <directory>\n\tbuild <directory>\n\n")
 		return
 	}
 
