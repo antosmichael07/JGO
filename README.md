@@ -1,2 +1,3 @@
 # JGO
-Go syntax file, that compiles to javascript syntax.
+
+The program compiles every file in the directory with the file extension .jgo to javascript files.
