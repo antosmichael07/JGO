@@ -50,6 +50,7 @@ func main() {
 		} else {
 			fmt.Print("\n!error: the check command requires a directory\n\n")
 		}
+		return
 	}
 
 	if os.Args[1] == "build" {
@@ -125,17 +126,19 @@ func main() {
 						lines[i] = strings.Replace(lines[i], "func", "function", 1)
 
 						start_bracket := strings.Index(lines[i], "(")
-						end_bracket := strings.Index(lines[i], ")")
+						end_bracket := strings.LastIndex(lines[i], ")")
 
 						for j := start_bracket + 1; j < end_bracket; j++ {
-							if lines[i][j] != ' ' && lines[i][j] != ',' && lines[i][j] != ')' && lines[i][j+1] == ' ' && lines[i][j+2] != ' ' && lines[i][j+2] != ',' && lines[i][j+2] != ')' && lines[i][j+2] != '{' {
+							if lines[i][j] != ' ' && lines[i][j] != ',' && lines[i][j+1] == ' ' && lines[i][j+2] != ' ' && lines[i][j+2] != ',' && j+2 != end_bracket {
 								j++
-								for lines[i][j] != ',' && lines[i][j] != ')' {
+								for lines[i][j] != ',' && j != end_bracket {
 									lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][j+1:])
 									end_bracket--
 								}
 							}
 						}
+
+						lines[i] = fmt.Sprintf("%s%s", lines[i][:end_bracket], ") {")
 					}
 
 					// Variables
@@ -176,9 +179,12 @@ func main() {
 						lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 					}
 
-					// Printf
-					if strings.Contains(lines[i], "fmt.Printf") && !is_string(lines[i], strings.Index(lines[i], "fmt.Printf")) && lines[i][strings.Index(lines[i], "fmt.Printf")+10] == '(' && (strings.Index(lines[i], "fmt.Printf") == 0 || lines[i][strings.Index(lines[i], "fmt.Printf")-1] == ' ') {
-						lines[i] = strings.Replace(lines[i], "fmt.Printf", "console.log", 1)
+					// Print
+					valid_prints := []string{"fmt.Printf", "fmt.Print", "fmt.Println"}
+					for _, v := range valid_prints {
+						if strings.Contains(lines[i], v) && !is_string(lines[i], strings.Index(lines[i], v)) && lines[i][strings.Index(lines[i], v)+len(v)] == '(' && (strings.Index(lines[i], v) == 0 || lines[i][strings.Index(lines[i], v)-1] == ' ') {
+							lines[i] = strings.Replace(lines[i], v, "console.log", 1)
+						}
 					}
 				}
 
@@ -216,7 +222,10 @@ func main() {
 		} else {
 			fmt.Print("\n!error: the build command requires a directory\n\n")
 		}
+		return
 	}
+
+	fmt.Print("\n!error: invalid command\n\n")
 }
 
 func is_string(str string, index int) bool {
