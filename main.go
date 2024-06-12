@@ -48,7 +48,7 @@ func main() {
 				logger.Log(lgr.Info, "No JGO files found")
 			}
 		} else {
-			fmt.Print("\n!error: the check command requires a directory\n\n")
+			fmt.Print("\n!error: this command requires a directory\n\n")
 		}
 		return
 	}
@@ -143,13 +143,18 @@ func main() {
 
 					// Variables
 					if strings.Contains(lines[i], ":=") && !is_string(lines[i], strings.Index(lines[i], ":=")) {
-						for j := strings.Index(lines[i], ":=") - 2; j > 0; j-- {
-							if lines[i][j] == ' ' {
-								lines[i] = fmt.Sprintf("%s let %s", lines[i][:j], lines[i][j+1:])
-								break
+						if !strings.Contains(lines[i], " range ") || is_string(lines[i], strings.Index(lines[i], " range ")) {
+							for j := strings.Index(lines[i], ":=") - 2; j > 0; j-- {
+								if lines[i][j] == ' ' {
+									lines[i] = fmt.Sprintf("%s let %s", lines[i][:j], lines[i][j+1:])
+									break
+								}
 							}
+							lines[i] = strings.Replace(lines[i], ":=", "=", 1)
+						} else {
+							lines[i] = strings.Replace(lines[i], "for ", "for let ", 1)
+							lines[i] = strings.Replace(lines[i], " := ", " = ", 1)
 						}
-						lines[i] = strings.Replace(lines[i], ":=", "=", 1)
 					}
 
 					// Conditions
@@ -158,8 +163,55 @@ func main() {
 						lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 					}
 
-					// While
+					// For
+					is_for_range := false
 					if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) && lines[i][strings.Index(lines[i], "for")+3] == ' ' && (strings.Index(lines[i], "for") == 0 || lines[i][strings.Index(lines[i], "for")-1] == ' ') {
+						lines[i] = strings.Replace(lines[i], "for ", "for (", 1)
+
+						if strings.Contains(lines[i], "range ") && !is_string(lines[i], strings.Index(lines[i], "range ")) {
+							var_name := ""
+							value_name := ""
+							var_index := strings.Index(lines[i], "let ")
+							for j := var_index + 4; j < len(lines[i]); j++ {
+								if lines[i][j] == ' ' || lines[i][j] == ',' {
+									var_name = lines[i][var_index+4 : j]
+									if lines[i][j] == ',' {
+										value_name = lines[i][j+1 : strings.Index(lines[i], " =")]
+										lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][strings.Index(lines[i], " ="):])
+										break
+									}
+									break
+								}
+							}
+
+							range_index := strings.Index(lines[i], "range ")
+							last_str := lines[i][range_index+6:]
+							lines[i] = fmt.Sprintf("%s%s%s%s", lines[i][:range_index], "0; ", var_name, " < ")
+							for j := 0; j < len(last_str); j++ {
+								if last_str[j] == ' ' {
+									lines[i] = fmt.Sprintf("%s%s%s%s%s", lines[i], last_str[:j], ".length; ", var_name, "++) {")
+									break
+								}
+							}
+
+							if value_name != "" {
+								lines = append(lines[:i+1], append([]string{""}, lines[i+1:]...)...)
+
+								for j := 0; j < get_space_count(lines[i])+3; j++ {
+									lines[i+1] = fmt.Sprintf("%s%s", lines[i+1], " ")
+								}
+
+								lines[i+1] = fmt.Sprintf("%s%s%s%s%s%s%s", lines[i+1], value_name, " := ", last_str[:strings.Index(last_str, " {")], "[", var_name, "]")
+							}
+
+							is_for_range = true
+						} else {
+							lines[i] = strings.Replace(lines[i], " {", ") {", 1)
+						}
+					}
+
+					// While
+					if !is_for_range && strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) && lines[i][strings.Index(lines[i], "for")+3] == ' ' && (strings.Index(lines[i], "for") == 0 || lines[i][strings.Index(lines[i], "for")-1] == ' ') {
 						semicolon_count := 0
 						for j := 0; j < len(lines[i]); j++ {
 							if lines[i][j] == ';' {
@@ -168,22 +220,26 @@ func main() {
 						}
 						if semicolon_count == 0 {
 							lines[i] = strings.Replace(lines[i], "for", "while", 1)
-							lines[i] = strings.Replace(lines[i], "while ", "while (", 1)
-							lines[i] = strings.Replace(lines[i], " {", ") {", 1)
 						}
 					}
 
-					// For
-					if strings.Contains(lines[i], "for") && !is_string(lines[i], strings.Index(lines[i], "for")) && lines[i][strings.Index(lines[i], "for")+3] == ' ' && (strings.Index(lines[i], "for") == 0 || lines[i][strings.Index(lines[i], "for")-1] == ' ') {
-						lines[i] = strings.Replace(lines[i], "for ", "for (", 1)
-						lines[i] = strings.Replace(lines[i], " {", ") {", 1)
+					// Print
+					if strings.Contains(lines[i], "fmt.Print") && !is_string(lines[i], strings.Index(lines[i], "fmt.Print")) && lines[i][strings.Index(lines[i], "fmt.Print")+len("fmt.Print")] == '(' && (strings.Index(lines[i], "fmt.Print") == 0 || lines[i][strings.Index(lines[i], "fmt.Print")-1] == ' ') {
+						lines[i] = strings.Replace(lines[i], "fmt.Print", "console.log", 1)
 					}
 
-					// Print
-					valid_prints := []string{"fmt.Printf", "fmt.Print", "fmt.Println"}
-					for _, v := range valid_prints {
-						if strings.Contains(lines[i], v) && !is_string(lines[i], strings.Index(lines[i], v)) && lines[i][strings.Index(lines[i], v)+len(v)] == '(' && (strings.Index(lines[i], v) == 0 || lines[i][strings.Index(lines[i], v)-1] == ' ') {
-							lines[i] = strings.Replace(lines[i], v, "console.log", 1)
+					// Array
+					if strings.Contains(lines[i], "[]") && !is_string(lines[i], strings.Index(lines[i], "[]")) {
+						j := strings.Index(lines[i], "[]")
+						for lines[i][j] != '{' {
+							lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][j+1:])
+						}
+						lines[i] = fmt.Sprintf("%s%s%s", lines[i][:j], "[", lines[i][j+1:])
+						for k := j + 1; k < len(lines[i]); k++ {
+							if lines[i][k] == '}' {
+								lines[i] = fmt.Sprintf("%s%s%s", lines[i][:k], "]", lines[i][k+1:])
+								break
+							}
 						}
 					}
 				}
@@ -220,7 +276,7 @@ func main() {
 				}
 			}
 		} else {
-			fmt.Print("\n!error: the build command requires a directory\n\n")
+			fmt.Print("\n!error: this command requires a directory\n\n")
 		}
 		return
 	}
