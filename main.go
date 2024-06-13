@@ -224,8 +224,28 @@ func main() {
 					}
 
 					// Print
-					if strings.Contains(lines[i], "fmt.Print") && !is_string(lines[i], strings.Index(lines[i], "fmt.Print")) && lines[i][strings.Index(lines[i], "fmt.Print")+len("fmt.Print")] == '(' && (strings.Index(lines[i], "fmt.Print") == 0 || lines[i][strings.Index(lines[i], "fmt.Print")-1] == ' ') {
+					if strings.Contains(lines[i], "fmt.Print") && !is_string(lines[i], strings.Index(lines[i], "fmt.Print")) && lines[i][strings.Index(lines[i], "fmt.Print")+len("fmt.Print")] == '(' {
 						lines[i] = strings.Replace(lines[i], "fmt.Print", "console.log", 1)
+					}
+
+					// Len
+					if strings.Contains(lines[i], "len") && !is_string(lines[i], strings.Index(lines[i], "len")) && lines[i][strings.Index(lines[i], "len")+len("len")] == '(' {
+						len_index := strings.Index(lines[i], "len(")
+						open_bracket_count := 0
+						close_bracket_count := 0
+						lines[i] = strings.Replace(lines[i], "len(", "", 1)
+						for j := len_index; j < len(lines[i]); j++ {
+							if lines[i][j] == '(' {
+								open_bracket_count++
+							}
+							if lines[i][j] == ')' {
+								if open_bracket_count == close_bracket_count {
+									lines[i] = fmt.Sprintf("%s%s%s", lines[i][:j], ".length", lines[i][j+1:])
+									break
+								}
+								close_bracket_count++
+							}
+						}
 					}
 
 					// Array
