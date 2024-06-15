@@ -301,7 +301,7 @@ func main() {
 		return
 	}
 
-	fmt.Print("\n!error: invalid command\n\n")
+	fmt.Print("\n!error: invalid command, use command help to show available commands\n\n")
 }
 
 func is_string(str string, index int) bool {
