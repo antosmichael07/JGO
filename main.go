@@ -228,6 +228,68 @@ func main() {
 						lines[i] = strings.Replace(lines[i], "fmt.Print", "console.log", 1)
 					}
 
+					// Sprintf
+					if strings.Contains(lines[i], "fmt.Sprintf") && !is_string(lines[i], strings.Index(lines[i], "fmt.Sprintf")) && lines[i][strings.Index(lines[i], "fmt.Sprintf")+len("fmt.Sprintf")] == '(' {
+						index := strings.Index(lines[i], "fmt.Sprintf") + len("fmt.Sprintf") + 1
+						end_index := 0
+						argument := 1
+						open_bracket_count := 0
+						close_bracket_count := 0
+						for j := index; j < len(lines[i]); j++ {
+							if lines[i][j] == '(' {
+								open_bracket_count++
+							}
+							if lines[i][j] == ')' {
+								if open_bracket_count == close_bracket_count {
+									end_index = j
+									break
+								}
+								close_bracket_count++
+							}
+						}
+						args := strings.Split(lines[i][index:end_index], ",")
+						for j := index; j < len(lines[i]); j++ {
+							if lines[i][j] == ',' && !is_string(lines[i], j) {
+								for k := j; k < len(lines[i]); k++ {
+									open_bracket_count = 0
+									close_bracket_count = 0
+									for l := k; l < len(lines[i]); l++ {
+										if lines[i][l] == '(' {
+											open_bracket_count++
+										}
+										if lines[i][l] == ')' {
+											if open_bracket_count == close_bracket_count {
+												end_index = l
+												break
+											}
+											close_bracket_count++
+										}
+									}
+								}
+								lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][end_index:])
+								break
+							}
+							if lines[i][j] == '%' {
+								for !((int(lines[i][j]) >= 65 && int(lines[i][j]) <= 90) || (int(lines[i][j]) >= 97 && int(lines[i][j]) <= 122)) {
+									lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][j+1:])
+								}
+								add := false
+								if lines[i][j+1] == '"' {
+									add = true
+								}
+								lines[i] = fmt.Sprintf("%s%s", lines[i][:j], lines[i][j+1:])
+								if !add {
+									lines[i] = fmt.Sprintf("%s%s%s%s%s", lines[i][:j], "\" +", args[argument], " + \" ", lines[i][j+1:])
+								} else {
+									lines[i] = fmt.Sprintf("%s%s%s%s", lines[i][:j], "\" +", args[argument], lines[i][j+1:])
+								}
+								argument++
+							}
+						}
+
+						lines[i] = strings.Replace(lines[i], "fmt.Sprintf", "", 1)
+					}
+
 					// Len
 					if strings.Contains(lines[i], "len") && !is_string(lines[i], strings.Index(lines[i], "len")) && lines[i][strings.Index(lines[i], "len")+len("len")] == '(' {
 						len_index := strings.Index(lines[i], "len(")
@@ -311,7 +373,7 @@ func is_string(str string, index int) bool {
 			string_indexes = append(string_indexes, i)
 		}
 	}
-	for i := 0; i < len(string_indexes); i += 2 {
+	for i := 0; i < len(string_indexes)-1; i += 2 {
 		if index > string_indexes[i] && index < string_indexes[i+1] {
 			return true
 		}
