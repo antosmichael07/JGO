@@ -76,6 +76,7 @@ func main() {
 				logger.Log(lgr.Warning, "No JGO files found")
 			}
 
+			has_append := false
 			for _, v := range files {
 				data, err := os.ReadFile(v)
 				if err != nil {
@@ -95,6 +96,11 @@ func main() {
 
 				end := len(lines)
 				for i := 0; i < end; i++ {
+					// Append
+					if strings.Contains(lines[i], "append") && !is_string(lines[i], strings.Index(lines[i], "append")) {
+						has_append = true
+					}
+
 					// Package
 					if strings.Index(lines[i], "package") == 0 {
 						lines = append(lines[:i], lines[i+1:]...)
@@ -324,15 +330,27 @@ func main() {
 							}
 						}
 					}
+
+					// Append ...
+					if strings.Contains(lines[i], "append") && !is_string(lines[i], strings.Index(lines[i], "append")) && strings.Contains(lines[i], "...") && !is_string(lines[i], strings.Index(lines[i], "...")) {
+						lines[i] = strings.Replace(lines[i], "...", "", 1)
+					}
 				}
 
 				// Call main
 				if has_main {
 					if lines[len(lines)-1] == "" || lines[len(lines)-1] == "\r" {
+						// Append
+						if has_append {
+							lines = append(lines, []string{"function append(a, b) {", "\tlet tmp = a", "\tif (b instanceof Array) {", "\t\tfor (let i = 0; i < b.length; i++) {", "\t\t\ttmp.push(b[i])", "\t\t}", "\t} else {", "\t\ttmp.push(b)", "\t}", "\treturn tmp", "}", ""}...)
+						}
 						lines = append(lines, "main()")
 					} else {
-						lines = append(lines, "")
-						lines = append(lines, "main()")
+						// Append
+						if has_append {
+							lines = append(lines, []string{"", "function append(a, b) {", "\tlet tmp = a", "\tif (b instanceof Array) {", "\t\tfor (let i = 0; i < b.length; i++) {", "\t\t\ttmp.push(b[i])", "\t\t}", "\t} else {", "\t\ttmp.push(b)", "\t}", "\treturn tmp", "}"}...)
+						}
+						lines = append(lines, []string{"", "main()"}...)
 					}
 				}
 
