@@ -8,7 +8,7 @@ import (
 	lgr "github.com/antosmichael07/Go-Logger"
 )
 
-var logger = lgr.NewLogger("JGO")
+var logger, _ = lgr.NewLogger("JGO", "", false)
 
 func main() {
 	logger.Output.File = false
